@@ -26,5 +26,72 @@
 <span class="copy-icon" tabindex="0" role="button" aria-label="{{__('messages.Copy URL to clipboard')}}"></span>
 
 @if($ShowShrBtn == 'true')
-<script>const shareButtons=document.querySelectorAll(".share-button");shareButtons.forEach((e=>{e.addEventListener("click",(()=>{const r=e.dataset.share;navigator.share?navigator.share({title:"{{__('messages.Share this page')}}",url:r}).catch((e=>console.error("Error:",e))):navigator.clipboard.writeText(r).then((()=>{alert("{{__('messages.URL has been copied to your clipboard!')}}")})).catch((e=>{alert("Error",e)}))}))}));</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const shareButtons = document.querySelectorAll(".share-button");
+
+    shareButtons.forEach(function(button) {
+        button.addEventListener("click", function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const shareUrl = button.dataset.share;
+
+            // Check if Web Share API is available and secure context
+            if (navigator.share && window.isSecureContext) {
+                navigator.share({
+                    title: "{{__('messages.Share this page')}}",
+                    url: shareUrl
+                }).catch(function(error) {
+                    console.error("Share error:", error);
+                    // Fallback to clipboard if share fails
+                    copyToClipboard(shareUrl);
+                });
+            } else {
+                // Fallback to clipboard copy
+                copyToClipboard(shareUrl);
+            }
+        });
+
+        // Also handle keyboard accessibility
+        button.addEventListener("keypress", function(event) {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                button.click();
+            }
+        });
+    });
+
+    function copyToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert("{{__('messages.URL has been copied to your clipboard!')}}");
+            }).catch(function(error) {
+                console.error("Clipboard error:", error);
+                fallbackCopy(text);
+            });
+        } else {
+            fallbackCopy(text);
+        }
+    }
+
+    function fallbackCopy(text) {
+        // Fallback method for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            alert("{{__('messages.URL has been copied to your clipboard!')}}");
+        } catch (error) {
+            console.error("Fallback copy error:", error);
+            alert("{{__('messages.Could not copy URL. Please copy manually:')}}\n" + text);
+        }
+        document.body.removeChild(textArea);
+    }
+});
+</script>
 @endif

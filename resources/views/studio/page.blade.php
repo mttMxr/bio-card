@@ -283,65 +283,79 @@
                 </form>
 
                 @if(env('ALLOW_USER_HTML') === true)
-                <script src="{{ asset('assets/external-dependencies/ckeditor.js') }}"></script>
+                <!-- Include Quill stylesheet -->
+                <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+
+                <!-- Include Quill library -->
+                <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+
+                <style>
+                    .ql-editor {
+                        min-height: 200px;
+                        font-size: 16px;
+                    }
+                    .ql-toolbar {
+                        background: #f8f9fa;
+                        border-radius: 8px 8px 0 0;
+                    }
+                    .ql-container {
+                        border-radius: 0 0 8px 8px;
+                    }
+                </style>
+
                 <script>
-                  ClassicEditor
-                      .create(document.querySelector('.ckeditor'), {
-                          toolbar: {
-                              items: [
-                                  'exportPDF', 'exportWord', '|',
-                                  'findAndReplace', 'selectAll', '|',
-                                  'heading', '|',
-                                  'bold', 'italic', 'strikethrough', 'underline', 'code', 'subscript', 'superscript', 'removeFormat', '|',
-                                  'bulletedList', 'numberedList', 'todoList', '|',
-                                  'outdent', 'indent', '|',
-                                  'undo', 'redo',
-                                  'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', 'highlight', '|',
-                                  'alignment', '|',
-                                  'link', 'blockQuote', '|',
-                                  'specialCharacters', 'horizontalLine', '|',
-                                  'textPartLanguage', '|',
-                              ],
-                              shouldNotGroupWhenFull: true
-                          },
-                          fontFamily: {
-                              options: [
-                                  'default',
-                                  'Arial, Helvetica, sans-serif',
-                                  'Courier New, Courier, monospace',
-                                  'Georgia, serif',
-                                  'Lucida Sans Unicode, Lucida Grande, sans-serif',
-                                  'Tahoma, Geneva, sans-serif',
-                                  'Times New Roman, Times, serif',
-                                  'Trebuchet MS, Helvetica, sans-serif',
-                                  'Verdana, Geneva, sans-serif'
-                              ],
-                              supportAllValues: true
-                          },
-                          fontSize: {
-                              options: [10, 12, 14, 'default', 18, 20, 22],
-                              supportAllValues: true
-                          },
-                          link: {
-                              addTargetToExternalLinks: true, // Add this option to open external links in a new tab
-                              defaultProtocol: 'http://',
-                              decorators: {
-                                  addTargetToExternalLinks: {
-                                      mode: 'manual',
-                                      label: 'Open in new tab',
-                                      attributes: {
-                                          target: '_blank',
-                                          rel: 'noopener noreferrer'
-                                      }
-                                  }
-                              }
-                          }
-                      })
-                      .catch(error => {
-                          console.error(error);
-                      });
-              </script>
-                
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Get the textarea content
+                        var textareaElement = document.querySelector('.ckeditor');
+                        var initialContent = textareaElement.value;
+
+                        // Hide the original textarea
+                        textareaElement.style.display = 'none';
+
+                        // Create a div for Quill editor
+                        var editorDiv = document.createElement('div');
+                        editorDiv.id = 'quill-editor';
+                        textareaElement.parentNode.insertBefore(editorDiv, textareaElement);
+
+                        // Initialize Quill
+                        var quill = new Quill('#quill-editor', {
+                            theme: 'snow',
+                            modules: {
+                                toolbar: [
+                                    [{ 'header': [1, 2, 3, false] }],
+                                    ['bold', 'italic', 'underline', 'strike'],
+                                    [{ 'color': [] }, { 'background': [] }],
+                                    [{ 'font': [] }],
+                                    [{ 'size': ['small', false, 'large', 'huge'] }],
+                                    [{ 'align': [] }],
+                                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                                    ['blockquote', 'code-block'],
+                                    ['link'],
+                                    ['clean']
+                                ]
+                            },
+                            placeholder: 'Enter your page description...'
+                        });
+
+                        // Set initial content
+                        quill.root.innerHTML = initialContent;
+
+                        // Update textarea on text change
+                        quill.on('text-change', function() {
+                            textareaElement.value = quill.root.innerHTML;
+                        });
+
+                        // Update textarea before form submit
+                        var form = textareaElement.closest('form');
+                        if (form) {
+                            form.addEventListener('submit', function() {
+                                textareaElement.value = quill.root.innerHTML;
+                            });
+                        }
+                    });
+                </script>
+
                 @endif
                 </div>
                 

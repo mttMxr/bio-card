@@ -24,7 +24,7 @@ class Impersonate
             $impersonateUser = User::find($impersonateUserId);
             $impersonateUserName = $impersonateUser->name;
 
-            if (Auth::user()->id === $originalUserId) {
+            if (Auth::check() && Auth::user()->id === $originalUserId) {
                 $token = Str::random(60);
                 if (\Route::currentRouteName() !== 'authAs') {
                     $adminUser->remember_token = $token;

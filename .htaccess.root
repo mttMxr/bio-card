@@ -1,0 +1,35 @@
+# ============================================================================
+# .htaccess для корневой директории (если не можете изменить Document Root)
+# ============================================================================
+# Переименуйте этот файл в .htaccess и поместите в корень сайта,
+# если в панели Beget нельзя установить корневую директорию на /public
+# ============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Редирект всех запросов в папку public
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Защита от просмотра содержимого директорий
+Options -Indexes
+
+# Защита .env файла
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Защита важных файлов
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Защита конфигурационных файлов
+<FilesMatch "(composer\.json|composer\.lock|package\.json|package-lock\.json|artisan)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

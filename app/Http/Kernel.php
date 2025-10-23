@@ -70,4 +70,38 @@ class Kernel extends HttpKernel
         'max.users' => \App\Http\Middleware\MaxUsers::class,
         'impersonate' => \App\Http\Middleware\Impersonate::class,
     ];
+
+    /**
+     * Call the terminate method on any terminable middleware.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Response  $response
+     * @return void
+     */
+    protected function terminateMiddleware($request, $response)
+    {
+        $middlewares = $this->app->shouldSkipMiddleware() ? [] : array_merge(
+            $this->gatherRouteMiddleware($request),
+            $this->middleware
+        );
+
+        foreach ($middlewares as $middleware) {
+            if (! is_string($middleware) || empty($middleware)) {
+                continue;
+            }
+
+            [$name] = $this->parseMiddleware($middleware);
+
+            try {
+                $instance = $this->app->make($name);
+
+                if (method_exists($instance, 'terminate')) {
+                    $instance->terminate($request, $response);
+                }
+            } catch (\Illuminate\Contracts\Container\BindingResolutionException $e) {
+                // Silently ignore binding resolution exceptions for terminable middleware
+                continue;
+            }
+        }
+    }
 }

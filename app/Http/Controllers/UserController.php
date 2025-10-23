@@ -608,7 +608,14 @@ class UserController extends Controller
     
         $profilePhoto = $request->file('image');
         $pageName = $request->littlelink_name;
-        $pageDescription = strip_tags($request->pageDescription, '<a><p><strong><i><ul><ol><li><blockquote><h2><h3><h4>');
+
+        // Allow more HTML tags and preserve inline styles for rich text editor
+        $pageDescription = strip_tags($request->pageDescription, '<a><p><strong><i><ul><ol><li><blockquote><h2><h3><h4><span><em><u><s><br><div><b>');
+
+        // Sanitize and preserve safe inline styles (color, background-color, font-size, etc.)
+        // Remove dangerous attributes like onclick, onerror, etc.
+        $pageDescription = preg_replace('/(on\w+|javascript:)/i', '', $pageDescription);
+
         $pageDescription = preg_replace("/<a([^>]*)>/i", "<a $1 rel=\"noopener noreferrer nofollow\">", $pageDescription);
         $pageDescription = strip_tags_except_allowed_protocols($pageDescription);
         $name = $request->name;
